@@ -4,6 +4,15 @@ clear all
 close all
 load('meas_flatGround.mat');
 
+meas.t=meas.t(:,100:1100);
+meas.acc=meas.acc(:,100:1100);
+meas.gyr=meas.gyr(:,100:1100);
+meas.mag=meas.mag(:,100:1100);
+
+acc_t = meas.t(:,~any(isnan(meas.acc)));
+gyr_t = meas.t(:,~any(isnan(meas.gyr)));
+mag_t = meas.t(:,~any(isnan(meas.mag)));
+
 acc_data = meas.acc(:,~any(isnan(meas.acc)));
 gyr_data = meas.gyr(:,~any(isnan(meas.gyr)));
 mag_data = meas.mag(:,~any(isnan(meas.mag)));
@@ -26,30 +35,58 @@ mag_cov(3) = cov(mag_data(3,:));
 
 % PLOT acceleration data histogram
 figure(1)
-axis_vec={'X','Y','Z'};
+axis_vec=['X','Y','Z'];
 for i = 1:3
-histogram(acc_data(i,:),'Normalization','pdf','Displayname',[axis_vec(i),'Z-axis acceleration data'])
+subplot(3,1,i)
+histogram(acc_data(i,:),'Normalization','pdf','Displayname',[axis_vec(i),'-axis acceleration data'])
 hold on
-x_interval = 9.8:0.001:10;
+x_interval = acc_mean(i)-3*sqrt(acc_cov(i)):0.0001:acc_mean(i)+3*sqrt(acc_cov(i));
+subplot(3,1,i)
 plot(x_interval,normpdf(x_interval,acc_mean(i),sqrt(acc_cov(i))),'Displayname','Normal distribution fitted to data')
 legend('show')
+xlabel('Acceleration (m/s^2)')
+ylabel('Sample propability')
 end
 
-% PLOTgyro data histogram
-figure(3)
-histogram(gyr_data(1,:),'Normalization','pdf','Displayname','X-axis gyro data')
+
+% PLOT gyro data histogram
+figure(2)
+for i = 1:3
+subplot(3,1,i)
+histogram(gyr_data(i,:),'Normalization','pdf','Displayname',[axis_vec(i),'-axis gyro data'])
 hold on
-x_interval = -0.01:0.001:0.01;
-plot(x_interval,normpdf(x_interval,gyr_mean(1),sqrt(gyr_cov(1))),'Displayname','Normal distribution fitted to data')
+x_interval = gyr_mean(i)-3*sqrt(gyr_cov(i)):0.0001:gyr_mean(i)+3*sqrt(gyr_cov(i));
+subplot(3,1,i)
+plot(x_interval,normpdf(x_interval,gyr_mean(i),sqrt(gyr_cov(i))),'Displayname','Normal distribution fitted to data')
 legend('show')
+xlabel('Angular velocity (rad/s)')
+ylabel('Sample propability')
+end
+
 
 % PLOT mag data histogram
-figure(4)
-histogram(mag_data(1,:),'Normalization','pdf','Displayname','X-axis magnometer data')
+figure(3)
+for i = 1:3
+subplot(3,1,i)
+histogram(mag_data(i,:),'Normalization','pdf','Displayname',[axis_vec(i),'-axis magnometer data'])
 hold on
-x_interval = -40:0.001:-33;
-plot(x_interval,normpdf(x_interval,mag_mean(1),sqrt(mag_cov(1))),'Displayname','Normal distribution fitted to data')
+x_interval = mag_mean(i)-3*sqrt(mag_cov(i)):0.0001:mag_mean(i)+3*sqrt(mag_cov(i));
+subplot(3,1,i)
+plot(x_interval,normpdf(x_interval,mag_mean(i),sqrt(mag_cov(i))),'Displayname','Normal distribution fitted to data')
 legend('show')
+xlabel('Magnetic flow density (\mu T)')
+ylabel('Sample propability')
+end
 
-
-
+%PLOT OVER TIME
+figure(4)
+subplot(3,1,1)
+plot(acc_t-acc_t(1),acc_data)
+axis([-inf inf -1 11])
+legend('X-axis','Y-axis')
+subplot(3,1,2)
+plot(gyr_t-gyr_t(1),gyr_data,'Displayname','Accelerometer data')
+legend('show')
+subplot(3,1,3)
+plot(mag_t-mag_t(1),mag_data,'Displayname','Accelerometer data')
+legend('show')
