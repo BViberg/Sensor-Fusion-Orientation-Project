@@ -42,6 +42,10 @@ function [xhat, meas] = filterTemplate(calAcc, calGyr, calMag)
                 'gyr', zeros(3, 0),...
                 'mag', zeros(3, 0),...
                 'orient', zeros(4, 0));
+            
+  [xhat, P] = tu_qw(xhat, P, omega, T, Rw);  %HÄÄÄÄÄR?
+  [xhat, P] = mu_normalizeQ(xhat, P);        %VAAAR?  
+  
   try
     %% Create data link
     server = StreamSensorDataReader(3400);
