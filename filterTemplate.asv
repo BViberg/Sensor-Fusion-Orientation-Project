@@ -118,11 +118,6 @@ function [xhat, meas] = filterTemplate(calAcc, calGyr, calMag)
       meas.gyr(:, end+1) = gyr;
       meas.mag(:, end+1) = mag;
       meas.orient(:, end+1) = orientation;
-      
-      
-      [xhat, P] = tu_qw(xhat, P, omega, T, Rw);  %HÄÄÄÄÄR?
-      [xhat, P] = mu_normalizeQ(xhat, P);        %VAAAR?  
-  
     end
   catch e
     fprintf(['Unsuccessful connecting to client!\n' ...
