@@ -1,4 +1,4 @@
-function [xhat, meas] = filterTemplate(calAcc, calGyr, calMag)
+function [xhat, meas] = filterEKF(calAcc, calGyr, calMag)
 % FILTERTEMPLATE  Filter template
 %
 % This is a template function for how to collect and filter data
@@ -42,7 +42,10 @@ function [xhat, meas] = filterTemplate(calAcc, calGyr, calMag)
                 'gyr', zeros(3, 0),...
                 'mag', zeros(3, 0),...
                 'orient', zeros(4, 0));
-            
+  
+  Rw = 1.0e-06 * [0.6553    0.0425    0.0183;
+                  0.0425    0.7682   -0.0305;
+                  0.0183   -0.0305    0.6355];
 
   
   try
@@ -82,7 +85,8 @@ function [xhat, meas] = filterTemplate(calAcc, calGyr, calMag)
       end
       gyr = data(1, 5:7)';
       if ~any(isnan(gyr))  % Gyro measurements are available.
-        % Do something
+        [x, P] = tu_qw(x, P, gyr, T, Rw);  %HÄÄÄÄÄR?
+        [x, P] = mu_normalizeQ(x, P);        %VAAAR?  
       end
 
       mag = data(1, 8:10)';
@@ -120,8 +124,7 @@ function [xhat, meas] = filterTemplate(calAcc, calGyr, calMag)
       meas.orient(:, end+1) = orientation;
       
       
-      [xhat, P] = tu_qw(xhat, P, omega, T, Rw);  %HÄÄÄÄÄR?
-      [xhat, P] = mu_normalizeQ(xhat, P);        %VAAAR?  
+      
   
     end
   catch e
