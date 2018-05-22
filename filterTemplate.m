@@ -70,6 +70,7 @@ function [xhat, meas] = filterTemplate(calAcc, calGyr, calMag)
 
       if isnan(data(1))  % No new data received
         continue;        % Skips the rest of the look
+        continue;        % Skips the rest of the loop
       end
       t = data(1)/1000;  % Extract current time
 
