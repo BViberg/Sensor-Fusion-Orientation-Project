@@ -46,7 +46,15 @@ function [xhat, meas] = filterEKF(calAcc, calGyr, calMag)
   Rw = 1.0e-06 * [0.6553    0.0425    0.0183;
                   0.0425    0.7682   -0.0305;
                   0.0183   -0.0305    0.6355];
-
+              
+  Ra = 1.0e-03 * [0.5094   -0.0211   -0.0081;
+                 -0.0211    0.1245   -0.0174;
+                 -0.0081   -0.0174    0.3352];
+  T = 0.01;
+  
+  g0 = [0.0770;
+       -0.0392;
+        9.9097];
   
   try
     %% Create data link
@@ -81,8 +89,10 @@ function [xhat, meas] = filterEKF(calAcc, calGyr, calMag)
 
       acc = data(1, 2:4)';
       if ~any(isnan(acc))  % Acc measurements are available.
-        % Do something
+        [x, P] = mu_g(x, P, acc, Ra, g0);
+        [x, P] = mu_normalizeQ(x, P);
       end
+      
       gyr = data(1, 5:7)';
       if ~any(isnan(gyr))  % Gyro measurements are available.
         [x, P] = tu_qw(x, P, gyr, T, Rw);  %HÄÄÄÄÄR?
