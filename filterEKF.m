@@ -56,12 +56,18 @@ function [xhat, meas] = filterEKF(calAcc, calGyr, calMag)
        -0.0392;
         9.9097];
     
-  m0 = [0;sqrt((-3.5608)^2 + (-3.0440)^2);-44.8322]; 
+  m0 =1e-6* [0;sqrt((-3.5608)^2 + (-3.0440)^2);-44.8322]; 
   
-  Rm = [0.4531   -0.0011    0.0395;
-       -0.0011    0.7144    0.0486;
-        0.0395    0.0486    0.6715];
-  
+  Rm = 1e-12*   [0.4531   -0.0011    0.0395;
+                -0.0011    0.7144    0.0486;
+                0.0395    0.0486    0.6715];
+  L = norm(m0);
+
+%   Rm =  1.0e+11 * [4.5313   -0.0111    0.3947;
+%         -0.0111    7.1439    0.4856;
+%          0.3947    0.4856    6.7148];
+%   m0 = 1.0e+07 * [0 0.4685 -4.4832]';
+%   L = norm(m0);
   try
     %% Create data link
     server = StreamSensorDataReader(3400);
@@ -95,26 +101,45 @@ function [xhat, meas] = filterEKF(calAcc, calGyr, calMag)
 
       acc = data(1, 2:4)';
       if ~any(isnan(acc))  % Acc measurements are available.
-%           if norm(acc)>10
-%             ownView.setAccDist(1);
-%           else
-%             [x, P] = mu_g(x, P, acc, Ra, g0);
-%             [x, P] = mu_normalizeQ(x, P);
-%             ownView.setAccDist(0);
-%           end
+          if norm(acc)>10
+            [x, P] = mu_g(x, P, Ra, g0);
+            [x, P] = mu_normalizeQ(x, P);
+            ownView.setAccDist(1);
+          else
+            [x, P] = mu_g(x, P, Ra, g0,acc);
+            [x, P] = mu_normalizeQ(x, P);
+            ownView.setAccDist(0);
+          end
       end
       
-      gyr = data(1, 5:7)';
+        %gyr = data(1, 5:7)';
+        gyr = [0;0;0];
       if ~any(isnan(gyr))  % Gyro measurements are available.
         [x, P] = tu_qw(x, P, gyr, T, Rw);  
-        [x, P] = mu_normalizeQ(x, P);      
+        [x, P] = mu_normalizeQ(x, P);
+      elseif ~(counter == 0)
+        gyrTempIndex = find(~any(isnan(meas.gyr)),1,'last');
+        gyrTemp = meas.gyr(:,gyrTempIndex);
+        dT=t - t0-meas.t(:,gyrTempIndex); 
+        
+        RwIncMat = (dT*17.4261).^2*eye(3);
+        [x, P] = tu_qw(x, P, gyrTemp, T, Rw+RwIncMat);  
+        [x, P] = mu_normalizeQ(x, P);
       end
 
-      mag = data(1, 8:10)';
+      mag = 1e-6*data(1, 8:10)';
       if ~any(isnan(mag))  % Mag measurements are available.
-        %counter
-        [x, P] = mu_m(x, P, mag, m0,Rm);
-        [x, P] = mu_normalizeQ(x, P);
+        alpha = 0.1;
+        L = (1-alpha)*L+alpha*norm(mag);
+        if abs(L-norm(mag))>0.1*L 
+            [x, P] = mu_m(x, P, m0,Rm);
+            [x, P] = mu_normalizeQ(x, P);
+            ownView.setMagDist(1);
+        else
+            [x, P] = mu_m(x, P, m0,Rm,mag);
+            [x, P] = mu_normalizeQ(x, P);
+            ownView.setMagDist(0);
+        end
       end
 
       orientation = data(1, 18:21)';  % Google's orientation estimate.
@@ -155,5 +180,5 @@ function [xhat, meas] = filterEKF(calAcc, calGyr, calMag)
       'Make sure to start streaming from the phone *after*'...
              'running this function!']);
   end
-  %assignin('base','measMagnometer',meas);
+  assignin('base','measGyro',meas);
 end

@@ -2,9 +2,10 @@ clc
 clf
 clear all
 close all
-load('meas_flatGround');
+%load('meas_flatGround');
 %load('meas_magnometer.mat');
-meas = measMagnometer;
+load('measGyro.mat');
+meas = measGyro;
 
 % meas.t=meas.t(:,100:1100);
 % meas.acc=meas.acc(:,100:1100);
