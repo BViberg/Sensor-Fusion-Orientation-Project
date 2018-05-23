@@ -56,9 +56,11 @@ function [xhat, meas] = filterEKF(calAcc, calGyr, calMag)
        -0.0392;
         9.9097];
     
-  m0 = [0 sqrt((-3.5608)^2 + (-3.0440)^2) -44.8322]; 
+  m0 = [0;sqrt((-3.5608)^2 + (-3.0440)^2);-44.8322]; 
   
-  Rm = 
+  Rm = [0.4531   -0.0011    0.0395;
+       -0.0011    0.7144    0.0486;
+        0.0395    0.0486    0.6715];
   
   try
     %% Create data link
@@ -93,23 +95,24 @@ function [xhat, meas] = filterEKF(calAcc, calGyr, calMag)
 
       acc = data(1, 2:4)';
       if ~any(isnan(acc))  % Acc measurements are available.
-          if norm(acc)>10
-            ownView.setAccDist(1);
-          else
-            [x, P] = mu_g(x, P, acc, Ra, g0);
-            [x, P] = mu_normalizeQ(x, P);
-            ownView.setAccDist(0);
-          end
+%           if norm(acc)>10
+%             ownView.setAccDist(1);
+%           else
+%             [x, P] = mu_g(x, P, acc, Ra, g0);
+%             [x, P] = mu_normalizeQ(x, P);
+%             ownView.setAccDist(0);
+%           end
       end
       
       gyr = data(1, 5:7)';
       if ~any(isnan(gyr))  % Gyro measurements are available.
-        [x, P] = tu_qw(x, P, gyr, T, Rw);  %HÄÄÄÄÄR?
-        [x, P] = mu_normalizeQ(x, P);        %VAAAR?  
+        [x, P] = tu_qw(x, P, gyr, T, Rw);  
+        [x, P] = mu_normalizeQ(x, P);      
       end
 
       mag = data(1, 8:10)';
       if ~any(isnan(mag))  % Mag measurements are available.
+        %counter
         [x, P] = mu_m(x, P, mag, m0,Rm);
         [x, P] = mu_normalizeQ(x, P);
       end
