@@ -55,6 +55,10 @@ function [xhat, meas] = filterEKF(calAcc, calGyr, calMag)
   g0 = [0.0770;
        -0.0392;
         9.9097];
+    
+  m0 = [0 sqrt((-3.5608)^2 + (-3.0440)^2) -44.8322]; 
+  
+  Rm = 
   
   try
     %% Create data link
@@ -89,8 +93,13 @@ function [xhat, meas] = filterEKF(calAcc, calGyr, calMag)
 
       acc = data(1, 2:4)';
       if ~any(isnan(acc))  % Acc measurements are available.
-        [x, P] = mu_g(x, P, acc, Ra, g0);
-        [x, P] = mu_normalizeQ(x, P);
+          if norm(acc)>10
+            ownView.setAccDist(1);
+          else
+            [x, P] = mu_g(x, P, acc, Ra, g0);
+            [x, P] = mu_normalizeQ(x, P);
+            ownView.setAccDist(0);
+          end
       end
       
       gyr = data(1, 5:7)';
@@ -101,7 +110,8 @@ function [xhat, meas] = filterEKF(calAcc, calGyr, calMag)
 
       mag = data(1, 8:10)';
       if ~any(isnan(mag))  % Mag measurements are available.
-        % Do something
+        [x, P] = mu_m(x, P, mag, m0,Rm);
+        [x, P] = mu_normalizeQ(x, P);
       end
 
       orientation = data(1, 18:21)';  % Google's orientation estimate.
@@ -142,5 +152,5 @@ function [xhat, meas] = filterEKF(calAcc, calGyr, calMag)
       'Make sure to start streaming from the phone *after*'...
              'running this function!']);
   end
-  %assignin('base','meas',meas);
+  %assignin('base','measMagnometer',meas);
 end
