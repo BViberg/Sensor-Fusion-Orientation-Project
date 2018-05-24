@@ -2,7 +2,7 @@ function [acc,gyr,mag] = calibrationParams(meas)
 %UNTITLED4 Summary of this function goes here
 %   Detailed explanation goes here
 
-[MEAN,COV,~, ~] = VizualizeNoise(meas);
+[MEAN,COV,~, meas] = VizualizeNoise(meas);
 acc.g0=MEAN.acc;
 acc.P=COV.acc;
 
