@@ -4,13 +4,13 @@ clear all
 close all
 %load('meas_flatGround');
 %load('meas_magnometer.mat');
-load('measGyro.mat');
-meas = measGyro;
+load('measLongRun.mat');
+meas = measMag180524;
 
-% meas.t=meas.t(:,100:1100);
-% meas.acc=meas.acc(:,100:1100);
-% meas.gyr=meas.gyr(:,100:1100);
-% meas.mag=meas.mag(:,100:1100);
+meas.t=meas.t(:,100:20000);
+meas.acc=meas.acc(:,100:20000);
+meas.gyr=meas.gyr(:,100:20000);
+meas.mag=meas.mag(:,100:20000);
 
 acc_t = meas.t(:,~any(isnan(meas.acc)));
 gyr_t = meas.t(:,~any(isnan(meas.gyr)));
